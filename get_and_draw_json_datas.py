@@ -2,73 +2,49 @@ import json
 import os
 import matplotlib.pyplot as plt
 
-
-fid_dirs_1024 = '/home/ai004/work/zeng2020.08.05/faceAgeEdit/stargan-v2/1024/0922/eval'
-fid_dirs_512 = "/home/ai004/work/zeng2020.08.05/faceAgeEdit/stargan-v2/0917/expr/0917/eval"
-
-x = [x * 8000 for x in range(1, 13)]
-y2 = [14] * len(x)
-
-
+#读取并解析json数据
 def get_all_fid(fid_dirs):
     fids_jsons = os.listdir(fid_dirs)
-
     # fids_jsons = fids_jsons.sort()
-
-    fid_keys = ["FID_latent/young2old", "FID_latent/old2young", "FID_latent/mean",
-                "FID_reference/young2old", "FID_reference/old2young", "FID_reference/mean", ]
+    fid_keys = ["FID_latent/young2old", "FID_latent/old2young", "FID_latent/mean"]  # json文件内的关键字段
 
     FID_latent_young2old = []
     FID_latent_old2young = []
     FID_latent_mean = []
-    FID_reference_mean = []
 
     for fid in fids_jsons:
-        if fid[:3] != "FID":
-            continue
-        if fid[-5:] != '.json':
-            continue
-        if fid[-11:-5] == 'latent':
+        if fid[-5:] != '.json':  # 如果文件后缀不是json文件，跳过
             continue
         print(fid)
         path_fid_json = os.path.join(fid_dirs, fid)
         file = open(path_fid_json)
         fileJson = json.load(file)
         # print(fileJson)
-        keys = list(fileJson.keys())
+        keys = list(fileJson.keys())    # 获取json中所有的键值
         values = list(fileJson.values())
 
-        if fid_keys[3] in keys:
-            FID_latent_young2old.append(fileJson[fid_keys[3]])
-        if fid_keys[4] in keys:
-            FID_latent_old2young.append(fileJson[fid_keys[4]])
-        if "FID_latent/mean" in keys:
-            FID_latent_mean.append(fileJson["FID_latent/mean"])
-        if "FID_reference/mean" in keys:
-            FID_reference_mean.append(fileJson["FID_reference/mean"])
-    return FID_latent_young2old, FID_latent_old2young
+        if fid_keys[0] in keys:
+            FID_latent_young2old.append(fileJson[fid_keys[0]])
+        if fid_keys[1] in keys:
+            FID_latent_old2young.append(fileJson[fid_keys[1]])
+        # if fid_keys[2] in keys:
+        #     FID_latent_mean.append(fileJson[fid_keys[2]])
+
+    return FID_latent_young2old, FID_latent_old2young,len(fids_jsons)
 
 
-def draw(x, y, y2, label1, label2, color='b'):
-    plt.plot(x, y, label=label1, color=color)
-    plt.plot(x, y2, label=label2, color=color)
+def draw(x, y, y2, label1, label2, c1='b',c2='r'):
+    plt.plot(x, y, label=label1, color=c1)
+    plt.plot(x, y2, label=label2, color=c2)
 
-
+#主函数
 if __name__ == "__main__":
-    FID_latent_young2old, FID_latent_old2young = get_all_fid(fid_dirs_512)
-    draw(x, FID_latent_young2old, FID_latent_old2young, "512_young2old", "512_old2young")
-    FID_latent_young2old, FID_latent_old2young = get_all_fid(fid_dirs_1024)
-    draw(x, FID_latent_young2old, FID_latent_old2young, "1024_young2old", "1024_old2young", color='r')
-
-    #
-    plt.plot(x, y2, label="fid_stargan_demo", color='y')
-    plt.legend(loc='upper left', bbox_to_anchor=(0.2, 0.95))  # 打开图线命名
-
-    savename = "reference_FID_512_VS_1024"
-    plt.title(savename)
-
+    fid_dirs = './json'  # 修改成自己的目录
+    FID_latent_young2old, FID_latent_old2young,number_of_jsons= get_all_fid(fid_dirs)
+    x = [x * 8000 for x in range(1, number_of_jsons+1)]  #这些json是迭代8000次生成，坐标值可根据实际随意，但是要与json文件个数对应，本博客使用的是10
+    draw(x, FID_latent_young2old, FID_latent_old2young, label1="fid_young2old", label2="fid_old2young")
+    plt.legend()  # 将线的注解label1,label2显示在图上
+    savename= "FID_latent_across_iters"
+    plt.title(savename)   #给图添加标题
     plt.savefig(savename + ".png", dpi=120)
-# plt.plot(x, FID_latent_old2young, label="FID_latent_old2young")
-
-
-# # plt.show()
+    plt.show()  #显示在在保存后面，否则保存是空白图
