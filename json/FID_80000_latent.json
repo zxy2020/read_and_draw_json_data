@@ -1,0 +1,5 @@
+{
+    "FID_latent/young2old": 32.6587348136743,
+    "FID_latent/old2young": 30.739452324669934,
+    "FID_latent/mean": 31.699093569172117
+}
